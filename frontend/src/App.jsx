@@ -27,7 +27,7 @@ function App() {
   const getXboxLink = (name) => `https://www.xbox.com/es-ar/search?q=${encodeURIComponent(name)}`;
   const getPsLink = (name) => `https://store.playstation.com/es-ar/search/${encodeURIComponent(name)}`;
   
-  // Link de SteamDB (Sacamos el ID numérico del string 'steam-12345')
+  // Link de SteamDB
   const getSteamDBLink = (idString) => {
     const id = idString.replace('steam-', '');
     return `https://steamdb.info/app/${id}/`;
@@ -55,11 +55,22 @@ function App() {
 
       <div className="results-grid">
         {juegos.map((juego) => {
-          // Lógica de Descuento
+          // 1. Lógica de Descuento
           const tieneDescuento = juego.originalPrice > juego.price;
           const porcentaje = tieneDescuento 
             ? Math.round(((juego.originalPrice - juego.price) / juego.originalPrice) * 100) 
             : 0;
+
+          // 2. Lógica de "Calidad de Oferta"
+          let badgeClass = "badge-normal";
+          let badgeText = `-${porcentaje}%`;
+
+          if (porcentaje >= 85) {
+              badgeClass = "badge-historic"; // Rojo + Fuego
+              badgeText = `🔥 -${porcentaje}%`;
+          } else if (porcentaje >= 50) {
+              badgeClass = "badge-great"; // Azul
+          }
 
           return (
             <div key={juego.id} className="card">
@@ -67,9 +78,9 @@ function App() {
               <a href={juego.link} target="_blank" rel="noopener noreferrer" className="img-link">
                  <span className="store-badge">STEAM</span>
                  
-                 {/* BADGE DE DESCUENTO (Solo si hay oferta) */}
+                 {/* 3. AQUÍ APLICAMOS LA LÓGICA VISUALMENTE */}
                  {tieneDescuento && (
-                    <span className="discount-badge">-{porcentaje}%</span>
+                    <span className={`discount-badge ${badgeClass}`}>{badgeText}</span>
                  )}
 
                  <img 
@@ -83,7 +94,7 @@ function App() {
                 <h3>{juego.name}</h3>
                 
                 <div className="price-info">
-                    {/* Botón SteamDB Chiquito */}
+                    {/* Botón SteamDB */}
                     <a href={getSteamDBLink(juego.id)} target="_blank" rel="noopener noreferrer" className="steamdb-link" title="Ver historial en SteamDB">
                       📉 SteamDB
                     </a>
