@@ -22,6 +22,20 @@ function App() {
       setCargando(false);
     }
   }
+  // Función para ordenar los juegos (de menor a mayor precio)
+  const ordenarPorPrecio = () => {
+    // 1. Creamos una copia de la lista [...juegos] para no romper el estado original
+    const juegosOrdenados = [...juegos].sort((a, b) => {
+      // Obtenemos el precio final (o 0 si es gratis/no tiene precio)
+      const precioA = a.price ? a.price.final : 0;
+      const precioB = b.price ? b.price.final : 0;
+      
+      return precioA - precioB; // Si da negativo, A va antes que B
+    });
+
+    // 2. Actualizamos la pantalla con la lista ordenada
+    setJuegos(juegosOrdenados);
+  }
 
   return (
     <div className="container">
@@ -38,6 +52,13 @@ function App() {
         <button onClick={buscarJuegos} disabled={cargando}>
           {cargando ? "Buscando..." : "Buscar"}
         </button>
+        
+        {/* NUEVO BOTÓN: Solo se muestra si hay juegos en la lista */}
+        {juegos.length > 0 && (
+          <button onClick={ordenarPorPrecio} style={{ marginLeft: '10px', backgroundColor: '#4caf50' }}>
+            Ordenar 💲
+          </button>
+        )}
       </div>
 
       <div className="results-grid">
