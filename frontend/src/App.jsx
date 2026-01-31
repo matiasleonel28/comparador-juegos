@@ -19,13 +19,12 @@ function App() {
       .catch(err => console.error("Error buscando dólar:", err));
   }, []);
 
-  // 2. Función de Búsqueda (Conectada a Render)
+  // 2. Función de Búsqueda
   const buscarJuegos = async () => {
     if (!busqueda) return; 
     setCargando(true);
     setJuegos([]);
     try {
-      // URL DE PRODUCCIÓN (RENDER)
       const respuesta = await fetch(`https://gamehunter-backend.onrender.com/search?q=${busqueda}`)
       const datos = await respuesta.json()
       setJuegos(datos)
@@ -45,6 +44,9 @@ function App() {
     const id = idString.replace('steam-', '');
     return `https://steamdb.info/app/${id}/`;
   }
+
+  // 👇 NUEVO: Generador de Link a YouTube
+  const getYoutubeLink = (name) => `https://www.youtube.com/results?search_query=gameplay+${encodeURIComponent(name)}`;
 
   return (
     <div className="app-container">
@@ -67,16 +69,15 @@ function App() {
 
       <div className="results-grid">
         {juegos.map((juego) => {
-          // A. Cálculos de Precio y Descuento
+          // A. Cálculos de Precio
           const tieneDescuento = juego.originalPrice > juego.price;
           const porcentaje = tieneDescuento 
             ? Math.round(((juego.originalPrice - juego.price) / juego.originalPrice) * 100) 
             : 0;
           
-          // Precio en Pesos (con impuestos incluidos aprox via Dolar Tarjeta)
           const precioARS = Math.round(juego.price * valorDolar).toLocaleString('es-AR');
 
-          // B. Lógica de Badge (Etiqueta de Oferta)
+          // B. Badge
           let badgeClass = "badge-normal";
           let badgeText = `-${porcentaje}%`;
 
@@ -87,12 +88,9 @@ function App() {
               badgeClass = "badge-great"; 
           }
 
-          // C. Lógica de Imagen "Triple Escudo" 🛡️
-          // 1. Sacamos el ID limpio
+          // C. Triple Escudo de Imagen
           const steamId = juego.id.replace('steam-', '');
-          // 2. Construimos la URL HD oficial
           const hdImage = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${steamId}/header.jpg`;
-          // 3. Definimos un placeholder final por si todo falla
           const placeholderFinal = "https://placehold.co/460x215/1e293b/ffffff?text=GAMEHUNTER";
 
           return (
@@ -100,23 +98,16 @@ function App() {
               
               <a href={juego.link} target="_blank" rel="noopener noreferrer" className="img-link">
                  <span className="store-badge">STEAM</span>
-                 
-                 {/* Badge de Oferta */}
                  {tieneDescuento && (
                     <span className={`discount-badge ${badgeClass}`}>{badgeText}</span>
                  )}
-                 
-                 {/* IMAGEN INTELIGENTE */}
                  <img 
-                    src={hdImage} // Intento 1: HD
+                    src={hdImage} 
                     alt={juego.name} 
                     onError={(e) => {
-                        // Si falla la HD...
                         if (e.target.src !== juego.image && e.target.src !== placeholderFinal) {
-                            // Intento 2: Usar la Tiny Image que vino del backend
                             e.target.src = juego.image; 
                         } else {
-                            // Intento 3: Si falla la Tiny, usar cartel genérico y cortar el bucle
                             e.target.src = placeholderFinal;
                             e.target.onerror = null; 
                         }
@@ -132,23 +123,23 @@ function App() {
                         <a href={getSteamDBLink(juego.id)} target="_blank" rel="noopener noreferrer" className="steamdb-link" title="Ver historial">
                         📉 SteamDB
                         </a>
+
+                        {/* 👇 ACÁ ESTÁ EL BOTÓN NUEVO 👇 */}
+                        <a href={getYoutubeLink(juego.name)} target="_blank" rel="noopener noreferrer" className="youtube-link" title="Ver Gameplay">
+                        🎥 Gameplay
+                        </a>
                     </div>
 
                     <div className="steam-price-block">
                         {juego.price > 0 ? (
                           <>
-                            {/* Precio Original Tachado */}
                             {tieneDescuento && (
                                 <span className="original-price">US$ {juego.originalPrice.toFixed(2)}</span>
                             )}
-                            
-                            {/* Precio Final en Dólares */}
                             <div className="final-price-row">
                                 <span className="currency">US$</span>
                                 <span className="amount">{juego.price.toFixed(2)}</span>
                             </div>
-
-                            {/* Precio Estimado en Pesos */}
                             <div className="ars-price-row">
                                 ≈ ARS$ {precioARS}
                             </div>
